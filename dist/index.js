@@ -1961,7 +1961,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     return {
       rawFile: null,
       workbook: null,
-      tableData: [{}],
+      tableData: [],
       uploadInputId: new Date().getUTCMilliseconds()
     };
   },
@@ -1993,6 +1993,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         this.$emit('loading', false);
         return;
       }
+      this.$emit('loading', true);
       this.rawFile = e.target.files[0];
       this.fileConvertToWorkbook(this.rawFile).then(function (workbook) {
         // return all sheets
@@ -2003,12 +2004,19 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
           _this.initTable(_this.xlsxArrToTableArr(xlsxArr));
         } else {
           for (var index in workbook.SheetNames) {
-            console.log(_this.selectedSheet, index, workbook.SheetNames[index], workbook.Sheets[workbook.SheetNames[index]]);
             // parse all sheets in workbook, not just one
-            xlsxArr = __WEBPACK_IMPORTED_MODULE_0_xlsx___default.a.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[index]]);
-            var q = _this.xlsxArrToTableArr(xlsxArr);
-            _this.tableData[index].header = q.header;
-            _this.tableData[index].body = q.data;
+            try {
+              xlsxArr = __WEBPACK_IMPORTED_MODULE_0_xlsx___default.a.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[index]]);
+              var q = _this.xlsxArrToTableArr(xlsxArr);
+              _this.tableData.push({
+                index: Number(index),
+                sheetName: workbook.SheetNames[index],
+                header: q.header,
+                body: q.data
+              });
+            } catch (err) {
+              console.log(err);
+            }
           }
           _this.$emit('on-select-file', _this.tableData);
           _this.$emit('loading', false);
@@ -2111,7 +2119,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     },
     handleUploadBtnClick: function handleUploadBtnClick() {
       this.clearAllData();
-      this.$emit('loading', true);
       this.$refs[this.uploadInputId].click();
     },
     clearAllData: function clearAllData() {
