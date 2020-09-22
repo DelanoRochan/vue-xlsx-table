@@ -3,12 +3,16 @@
     <button type="button" :class="className" @click="handleUploadBtnClick">
       <slot></slot>
     </button>
-    <input :ref="uploadInputId" type="file" :accept="accept" class="c-hide" @change="handkeFileChange">
+    <input :ref="uploadInputId" type="file" :accept="accept" class="c-hide" @change="handleFileChange">
   </div>
 </template>
 
 <script>
 import XLSX from 'xlsx'
+
+// Change 1: add @loading emit, so that also when no file is selected, there's a trigger from this component
+// Change 2: load complete workbook into memory instead by default instead of specific sheet
+// Change 3: added new prop 'sheetIndex' to allow to overwrite change 2
 
 export default {
   name: 'vue-xlsx-table',
@@ -16,10 +20,7 @@ export default {
     return {
       rawFile: null,
       workbook: null,
-      tableData: {
-        header: [],
-        body: []
-      },
+      tableData: [{}],
       uploadInputId: new Date().getUTCMilliseconds()
     }
   },
@@ -31,6 +32,10 @@ export default {
     className: {
       type: String,
       default: 'xlsx-button'
+    },
+    selectedSheet: {
+      type: Number,
+      default: -1
     }
   },
   computed: {
@@ -39,21 +44,37 @@ export default {
     }
   },
   methods: {
-    handkeFileChange (e) {
+    handleFileChange (e) {
       if (this.rawFile !== null) {
+        this.$emit('loading', false);
         return
       }
       this.rawFile = e.target.files[0]
       this.fileConvertToWorkbook(this.rawFile)
         .then((workbook) => {
-          let xlsxArr = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]])
+          // return all sheets
           this.workbook = workbook
-          this.initTable(
-            this.xlsxArrToTableArr(xlsxArr)
-          )
+          let xlsxArr = [];
+          if (this.selectedSheet != -1) {
+            xlsxArr = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[this.selectedSheet]])
+            this.initTable(
+              this.xlsxArrToTableArr(xlsxArr)
+            )
+          }else{
+            for (let index in workbook.Sheets) {
+              // parse all sheets in workbook, not just one
+              xlsxArr = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[index]])
+              let q = this.xlsxArrToTableArr(xlsxArr)
+              this.tableData[index].header = q.header
+              this.tableData[index].body = q.data
+            }
+          }
+          this.$emit('on-select-file', this.tableData)
+          this.$emit('loading', false);
         })
         .catch((err) => {
           this.$emit('on-select-file', false)
+          this.$emit('loading', false)
           console.error(err)
         })
     },
@@ -135,9 +156,11 @@ export default {
       this.tableData.header = header
       this.tableData.body = data
       this.$emit('on-select-file', this.tableData)
+      this.$emit('loading', false);
     },
     handleUploadBtnClick () {
       this.clearAllData()
+      this.$emit('loading', true);
       this.$refs[this.uploadInputId].click()
     },
     clearAllData () {

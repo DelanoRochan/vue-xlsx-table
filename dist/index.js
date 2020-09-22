@@ -1951,16 +1951,17 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 
+// Change 1: add @loading emit, so that also when no file is selected, there's a trigger from this component
+// Change 2: load complete workbook into memory instead by default instead of specific sheet
+// Change 3: added new prop 'sheetIndex' to allow to overwrite change 2
+
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'vue-xlsx-table',
   data: function data() {
     return {
       rawFile: null,
       workbook: null,
-      tableData: {
-        header: [],
-        body: []
-      },
+      tableData: [{}],
       uploadInputId: new Date().getUTCMilliseconds()
     };
   },
@@ -1973,6 +1974,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     className: {
       type: String,
       default: 'xlsx-button'
+    },
+    selectedSheet: {
+      type: Number,
+      default: -1
     }
   },
   computed: {
@@ -1981,18 +1986,35 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     }
   },
   methods: {
-    handkeFileChange: function handkeFileChange(e) {
+    handleFileChange: function handleFileChange(e) {
       var _this = this;
 
       if (this.rawFile !== null) {
+        this.$emit('loading', false);
         return;
       }
       this.rawFile = e.target.files[0];
       this.fileConvertToWorkbook(this.rawFile).then(function (workbook) {
-        var xlsxArr = __WEBPACK_IMPORTED_MODULE_0_xlsx___default.a.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+        // return all sheets
         _this.workbook = workbook;
-        _this.initTable(_this.xlsxArrToTableArr(xlsxArr));
+        var xlsxArr = [];
+        if (_this.selectedSheet != -1) {
+          xlsxArr = __WEBPACK_IMPORTED_MODULE_0_xlsx___default.a.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[_this.selectedSheet]]);
+          _this.initTable(_this.xlsxArrToTableArr(xlsxArr));
+        } else {
+          for (var index in workbook.Sheets) {
+            // parse all sheets in workbook, not just one
+            xlsxArr = __WEBPACK_IMPORTED_MODULE_0_xlsx___default.a.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[index]]);
+            var q = _this.xlsxArrToTableArr(xlsxArr);
+            _this.tableData[index].header = q.header;
+            _this.tableData[index].body = q.data;
+          }
+        }
+        _this.$emit('on-select-file', _this.tableData);
+        _this.$emit('loading', false);
       }).catch(function (err) {
+        _this.$emit('on-select-file', false);
+        _this.$emit('loading', false);
         console.error(err);
       });
     },
@@ -2084,9 +2106,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       this.tableData.header = header;
       this.tableData.body = data;
       this.$emit('on-select-file', this.tableData);
+      this.$emit('loading', false);
     },
     handleUploadBtnClick: function handleUploadBtnClick() {
       this.clearAllData();
+      this.$emit('loading', true);
       this.$refs[this.uploadInputId].click();
     },
     clearAllData: function clearAllData() {
@@ -2717,7 +2741,7 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
       "accept": _vm.accept
     },
     on: {
-      "change": _vm.handkeFileChange
+      "change": _vm.handleFileChange
     }
   })])
 },staticRenderFns: []}
