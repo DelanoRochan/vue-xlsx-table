@@ -1986,16 +1986,17 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     }
   },
   methods: {
-    handleFileChange: function handleFileChange(e) {
+    handleFileChange: async function handleFileChange(e) {
       var _this = this;
 
+      console.log('test delano');
       if (this.rawFile !== null) {
         this.$emit('loading', false);
         return;
       }
       this.$emit('loading', true);
       this.rawFile = e.target.files[0];
-      this.fileConvertToWorkbook(this.rawFile).then(function (workbook) {
+      this.fileConvertToWorkbook(this.rawFile).then(async function (workbook) {
         // return all sheets
         _this.workbook = workbook;
         var xlsxArr = [];
@@ -2007,7 +2008,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
             // parse all sheets in workbook, not just one
             try {
               xlsxArr = __WEBPACK_IMPORTED_MODULE_0_xlsx___default.a.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[index]]);
-              var q = _this.xlsxArrToTableArr(xlsxArr);
+              var q = await _this.xlsxArrToTableArr(xlsxArr);
               _this.tableData.push({
                 index: Number(index),
                 sheetName: workbook.SheetNames[index],
@@ -2067,7 +2068,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         }
       });
     },
-    xlsxArrToTableArr: function xlsxArrToTableArr(xlsxArr) {
+    xlsxArrToTableArr: async function xlsxArrToTableArr(xlsxArr) {
       var tableArr = [];
       var length = 0;
       var maxLength = 0;
@@ -2123,10 +2124,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
     },
     clearAllData: function clearAllData() {
       this.$refs[this.uploadInputId].value = null;
-      this.tableData = {
-        header: [],
-        body: []
-      };
+      // this.tableData = {
+      //   header: [],
+      //   body: []
+      // }
+      this.tableData = [];
       this.rawFile = null;
       this.workbook = null;
     }

@@ -44,7 +44,8 @@ export default {
     }
   },
   methods: {
-    handleFileChange (e) {
+    async handleFileChange(e) {
+      console.log('test delano')
       if (this.rawFile !== null) {
         this.$emit('loading', false);
         return
@@ -52,7 +53,7 @@ export default {
       this.$emit('loading', true);
       this.rawFile = e.target.files[0]
       this.fileConvertToWorkbook(this.rawFile)
-        .then((workbook) => {
+        .then(async (workbook) => {
           // return all sheets
           this.workbook = workbook
           let xlsxArr = [];
@@ -66,7 +67,7 @@ export default {
               // parse all sheets in workbook, not just one
               try {
                 xlsxArr = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[index]])
-                let q = this.xlsxArrToTableArr(xlsxArr)
+                let q = await this.xlsxArrToTableArr(xlsxArr)
                 this.tableData.push({
                   index: Number(index),
                   sheetName: workbook.SheetNames[index],
@@ -123,7 +124,7 @@ export default {
         }
       })
     },
-    xlsxArrToTableArr (xlsxArr) {
+    async xlsxArrToTableArr (xlsxArr) {
       let tableArr = []
       let length = 0
       let maxLength = 0
@@ -173,10 +174,11 @@ export default {
     },
     clearAllData () {
       this.$refs[this.uploadInputId].value = null
-      this.tableData = {
-        header: [],
-        body: []
-      }
+      // this.tableData = {
+      //   header: [],
+      //   body: []
+      // }
+      this.tableData = [];
       this.rawFile = null
       this.workbook = null
     }
