@@ -20,7 +20,7 @@ export default {
     return {
       rawFile: null,
       workbook: null,
-      tableData: [{}],
+      tableData: [],
       uploadInputId: new Date().getUTCMilliseconds()
     }
   },
@@ -49,6 +49,7 @@ export default {
         this.$emit('loading', false);
         return
       }
+      this.$emit('loading', true);
       this.rawFile = e.target.files[0]
       this.fileConvertToWorkbook(this.rawFile)
         .then((workbook) => {
@@ -62,12 +63,19 @@ export default {
             )
           }else{
             for (let index in workbook.SheetNames) {
-            console.log(this.selectedSheet, index, workbook.SheetNames[index], workbook.Sheets[workbook.SheetNames[index]])
               // parse all sheets in workbook, not just one
-              xlsxArr = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[index]])
-              let q = this.xlsxArrToTableArr(xlsxArr)
-              this.tableData[index].header = q.header
-              this.tableData[index].body = q.data
+              try {
+                xlsxArr = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[index]])
+                let q = this.xlsxArrToTableArr(xlsxArr)
+                this.tableData.push({
+                  index: Number(index),
+                  sheetName: workbook.SheetNames[index],
+                  header: q.header,
+                  body: q.data
+                })
+              } catch (err) {
+                console.log(err);
+              }
             }
           this.$emit('on-select-file', this.tableData)
           this.$emit('loading', false);
@@ -161,7 +169,6 @@ export default {
     },
     handleUploadBtnClick () {
       this.clearAllData()
-      this.$emit('loading', true);
       this.$refs[this.uploadInputId].click()
     },
     clearAllData () {
