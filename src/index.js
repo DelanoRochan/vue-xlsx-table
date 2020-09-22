@@ -35,7 +35,7 @@ function install (Vue, options = {}) {
     xlsx.bindEventBus(xlsxEventBus)
   }
 
-  Vue.component('vue-xlsx-table', vueXlsxTable)
+  Vue.component('vue-xlsx-table2', vueXlsxTable)
 }
 
 export default install
