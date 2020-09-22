@@ -61,7 +61,8 @@ export default {
               this.xlsxArrToTableArr(xlsxArr)
             )
           }else{
-            for (let index in workbook.Sheets) {
+            for (let index in workbook.SheetNames) {
+            console.log(this.selectedSheet, index, workbook.SheetNames[index], workbook.Sheets[workbook.SheetNames[index]])
               // parse all sheets in workbook, not just one
               xlsxArr = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[index]])
               let q = this.xlsxArrToTableArr(xlsxArr)
