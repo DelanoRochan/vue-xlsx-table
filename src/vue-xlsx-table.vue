@@ -69,9 +69,9 @@ export default {
               this.tableData[index].header = q.header
               this.tableData[index].body = q.data
             }
-          }
           this.$emit('on-select-file', this.tableData)
           this.$emit('loading', false);
+          }
         })
         .catch((err) => {
           this.$emit('on-select-file', false)
