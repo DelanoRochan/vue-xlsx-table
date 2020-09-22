@@ -2002,16 +2002,17 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
           xlsxArr = __WEBPACK_IMPORTED_MODULE_0_xlsx___default.a.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[_this.selectedSheet]]);
           _this.initTable(_this.xlsxArrToTableArr(xlsxArr));
         } else {
-          for (var index in workbook.Sheets) {
+          for (var index in workbook.SheetNames) {
+            console.log(_this.selectedSheet, index, workbook.SheetNames[index], workbook.Sheets[workbook.SheetNames[index]]);
             // parse all sheets in workbook, not just one
             xlsxArr = __WEBPACK_IMPORTED_MODULE_0_xlsx___default.a.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[index]]);
             var q = _this.xlsxArrToTableArr(xlsxArr);
             _this.tableData[index].header = q.header;
             _this.tableData[index].body = q.data;
           }
+          _this.$emit('on-select-file', _this.tableData);
+          _this.$emit('loading', false);
         }
-        _this.$emit('on-select-file', _this.tableData);
-        _this.$emit('loading', false);
       }).catch(function (err) {
         _this.$emit('on-select-file', false);
         _this.$emit('loading', false);
@@ -2173,7 +2174,7 @@ function install(Vue) {
     xlsx.bindEventBus(xlsxEventBus);
   }
 
-  Vue.component('vue-xlsx-table', __WEBPACK_IMPORTED_MODULE_0__vue_xlsx_table_vue___default.a);
+  Vue.component('vue-xlsx-table2', __WEBPACK_IMPORTED_MODULE_0__vue_xlsx_table_vue___default.a);
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (install);
